@@ -6,8 +6,9 @@ sealed interface ScreenDestination {
     @Serializable
     data object Login : ScreenDestination
 
-    //This can be deleted after login implementation
     @Serializable
-    data object AfterLoginTest : ScreenDestination
+    data object Register : ScreenDestination
 
+    @Serializable
+    data object Landing : ScreenDestination
 }
