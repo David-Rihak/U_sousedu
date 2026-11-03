@@ -2,7 +2,9 @@ package cz.tp.usousedu.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.tp.usousedu.data.auth.AuthError
 import cz.tp.usousedu.data.auth.IAuthRepository
+import cz.tp.usousedu.data.auth.IGoogleIdentityProvider
 import cz.tp.usousedu.ui.screens.toAuthMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +19,7 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUIState> = _uiState.asStateFlow()
 
     override fun login(email: String, password: String) {
+        if (_uiState.value is LoginUIState.Loading) return
         if (email.isBlank() || password.isEmpty()) {
             _uiState.value = LoginUIState.Error("Fill in email and password.")
             return
@@ -30,9 +33,22 @@ class LoginViewModel(
         }
     }
 
-    override fun loginWithGoogle() {
-        // TODO: obtain the Google ID token with the platform SDK (Credential Manager on Android,
-        //  GoogleSignIn on iOS) and pass it to authRepository.signInWithGoogle(idToken).
-        _uiState.value = LoginUIState.Error("Google login is not implemented yet.")
+    override fun loginWithGoogle(identityProvider: IGoogleIdentityProvider) {
+        if (_uiState.value is LoginUIState.Loading) return
+        viewModelScope.launch {
+            _uiState.value = LoginUIState.Loading
+            val identity = identityProvider.signIn().getOrElse { error ->
+                _uiState.value = if (error === AuthError.GoogleSignInCancelled) {
+                    LoginUIState.Default
+                } else {
+                    LoginUIState.Error(error.toAuthMessage())
+                }
+                return@launch
+            }
+            _uiState.value = authRepository.signInWithGoogle(identity).fold(
+                onSuccess = { LoginUIState.Success },
+                onFailure = { LoginUIState.Error(it.toAuthMessage()) },
+            )
+        }
     }
 }

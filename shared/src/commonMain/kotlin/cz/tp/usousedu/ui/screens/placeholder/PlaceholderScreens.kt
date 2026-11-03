@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cz.tp.usousedu.data.auth.rememberGoogleIdentityProvider
 import cz.tp.usousedu.navigation.INavigationRouter
 import cz.tp.usousedu.navigation.ScreenDestination
 import cz.tp.usousedu.ui.components.BaseScreen
@@ -55,6 +56,7 @@ fun MainPlaceholderScreen(
 fun ProfilePlaceholderScreen(navigation: INavigationRouter) {
     val viewModel = koinViewModel<LandingViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val googleIdentityProvider = rememberGoogleIdentityProvider()
 
     BaseScreen(
         bottomBar = {
@@ -76,13 +78,28 @@ fun ProfilePlaceholderScreen(navigation: INavigationRouter) {
                 )
 
                 is LandingUIState.Loaded -> {
+                    currentState.user.displayName?.let { displayName ->
+                        Text(
+                            text = displayName,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
                     Text(
                         text = currentState.user.email,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+                        modifier = Modifier.padding(
+                            top = if (currentState.user.displayName == null) 8.dp else 2.dp,
+                            bottom = 24.dp,
+                        ),
                     )
                     OutlinedButton(
-                        onClick = { viewModel.logout(navigation::toLoginScreen) },
+                        onClick = {
+                            viewModel.logout(
+                                identityProvider = googleIdentityProvider,
+                                onLoggedOut = navigation::toLoginScreen,
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("Odhlásit se")

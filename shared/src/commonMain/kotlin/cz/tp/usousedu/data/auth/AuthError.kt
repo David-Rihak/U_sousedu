@@ -8,4 +8,8 @@ sealed class AuthError(message: String) : Exception(message) {
     object Network : AuthError("Network error")
     object NotSignedIn : AuthError("Not signed in")
     object NotSupported : AuthError("Sign-in method not supported")
+    object GoogleSignInCancelled : AuthError("Google sign-in cancelled")
+    object GoogleAccountUnavailable : AuthError("No Google account available")
+    object InvalidGoogleCredential : AuthError("Invalid Google credential")
+    object GoogleSignInFailed : AuthError("Google sign-in failed")
 }
