@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cz.tp.usousedu.data.auth.rememberGoogleIdentityProvider
 import cz.tp.usousedu.navigation.INavigationRouter
 import cz.tp.usousedu.ui.components.AuthTextField
 import cz.tp.usousedu.ui.components.BaseScreen
@@ -41,6 +42,7 @@ import usousedu.shared.generated.resources.ic_google
 fun LoginScreen(navigation: INavigationRouter) {
     val viewModel = koinViewModel<LoginViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val googleIdentityProvider = rememberGoogleIdentityProvider()
 
     LaunchedEffect(state) {
         if (state is LoginUIState.Success) {
@@ -54,6 +56,7 @@ fun LoginScreen(navigation: INavigationRouter) {
             state = state,
             navigation = navigation,
             actions = viewModel,
+            onGoogleSignIn = { viewModel.loginWithGoogle(googleIdentityProvider) },
         )
     }
 }
@@ -64,6 +67,7 @@ fun LoginScreenContent(
     state: LoginUIState,
     navigation: INavigationRouter,
     actions: LoginActions,
+    onGoogleSignIn: () -> Unit,
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -118,7 +122,7 @@ fun LoginScreenContent(
         }
 
         OutlinedButton(
-            onClick = { actions.loginWithGoogle() },
+            onClick = onGoogleSignIn,
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth(),
         ) {

@@ -9,5 +9,9 @@ fun Throwable.toAuthMessage(): String = when (this) {
     AuthError.Network -> "No connection. Try again."
     AuthError.NotSignedIn -> "You are not signed in."
     AuthError.NotSupported -> "This sign-in method is not available yet."
+    AuthError.GoogleSignInCancelled -> "Google sign-in was cancelled."
+    AuthError.GoogleAccountUnavailable -> "No Google account is available on this device."
+    AuthError.InvalidGoogleCredential -> "Google returned an invalid credential."
+    AuthError.GoogleSignInFailed -> "Google sign-in failed. Try again."
     else -> "Something went wrong."
 }

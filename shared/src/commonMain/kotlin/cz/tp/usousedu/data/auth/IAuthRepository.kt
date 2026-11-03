@@ -9,6 +9,6 @@ interface IAuthRepository {
     /** Failure carries an [AuthError]. */
     suspend fun signIn(email: String, password: String): Result<AuthUser>
     suspend fun register(email: String, password: String): Result<AuthUser>
-    suspend fun signInWithGoogle(idToken: String): Result<AuthUser>
+    suspend fun signInWithGoogle(identity: GoogleIdentity): Result<AuthUser>
     suspend fun signOut()
 }

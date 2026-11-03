@@ -10,6 +10,8 @@ import cz.tp.usousedu.database.UserEntity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -25,18 +27,25 @@ class LocalAuthRepository(
     private val sessionStore: DataStore<Preferences>,
 ) : IAuthRepository, IUserProfileRepository {
 
+    private val googleUser = MutableStateFlow<AuthUser?>(null)
+
     // Follows the user's row, so profile changes (e.g. the role) are emitted too.
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val currentUser: Flow<AuthUser?> = sessionStore.data
+    private val localUser: Flow<AuthUser?> = sessionStore.data
         .map { it[USER_ID] }
         .distinctUntilChanged()
         .flatMapLatest { id ->
             if (id == null) flowOf(null) else dao.observeById(id).map { it?.toAuthUser() }
         }
 
+    override val currentUser: Flow<AuthUser?> = combine(localUser, googleUser) { local, google ->
+        google ?: local
+    }
+
     override suspend fun signIn(email: String, password: String): Result<AuthUser> {
         val user = dao.findByCredentials(email.trim(), PasswordHasher.hash(password))
             ?: return Result.failure(AuthError.InvalidCredentials)
+        googleUser.value = null
         saveSession(user.id)
         return Result.success(user.toAuthUser())
     }
@@ -51,14 +60,29 @@ class LocalAuthRepository(
         } catch (e: Exception) {
             return Result.failure(AuthError.EmailTaken)
         }
+        googleUser.value = null
         saveSession(id)
         return Result.success(entity.copy(id = id).toAuthUser())
     }
 
-    override suspend fun signInWithGoogle(idToken: String): Result<AuthUser> =
-        Result.failure(AuthError.NotSupported)
+    override suspend fun signInWithGoogle(identity: GoogleIdentity): Result<AuthUser> {
+        if (identity.subject.isBlank() || identity.email.isBlank() || identity.idToken.isBlank()) {
+            return Result.failure(AuthError.InvalidGoogleCredential)
+        }
+        sessionStore.edit { it.remove(USER_ID) }
+        val user = AuthUser(
+            id = identity.subject,
+            email = identity.email,
+            role = UserRole.CUSTOMER,
+            provider = AuthProvider.GOOGLE,
+            displayName = identity.displayName,
+        )
+        googleUser.value = user
+        return Result.success(user)
+    }
 
     override suspend fun signOut() {
+        googleUser.value = null
         sessionStore.edit { it.remove(USER_ID) }
     }
 
