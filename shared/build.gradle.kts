@@ -66,6 +66,7 @@ kotlin {
             implementation(libs.androidx.sqlite.bundled)
             implementation(libs.androidx.datastore.preferences.core)
             implementation(libs.kotlincrypto.hash.sha2)
+            implementation(libs.qrose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

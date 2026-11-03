@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cz.tp.usousedu.ui.screens.landing.LandingScreen
 import cz.tp.usousedu.ui.screens.login.LoginScreen
+import cz.tp.usousedu.ui.screens.placeholder.MainPlaceholderScreen
+import cz.tp.usousedu.ui.screens.placeholder.ProfilePlaceholderScreen
 import cz.tp.usousedu.ui.screens.register.RegisterScreen
 
 @Composable
@@ -32,6 +34,34 @@ fun NavGraph(
 
         composable<ScreenDestination.Landing> {
             LandingScreen(navigation)
+        }
+
+        composable<ScreenDestination.Menu> {
+            MainPlaceholderScreen(
+                destination = ScreenDestination.Menu,
+                title = "Menu",
+                navigation = navigation,
+            )
+        }
+
+        composable<ScreenDestination.News> {
+            MainPlaceholderScreen(
+                destination = ScreenDestination.News,
+                title = "Aktuality",
+                navigation = navigation,
+            )
+        }
+
+        composable<ScreenDestination.Cafes> {
+            MainPlaceholderScreen(
+                destination = ScreenDestination.Cafes,
+                title = "Kavárny",
+                navigation = navigation,
+            )
+        }
+
+        composable<ScreenDestination.Profile> {
+            ProfilePlaceholderScreen(navigation)
         }
     }
 }

@@ -29,7 +29,7 @@ val dataModule = module {
 val viewModelModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { RegisterViewModel(get()) }
-    viewModel { LandingViewModel(get(), get()) }
+    viewModel { LandingViewModel(get()) }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) =

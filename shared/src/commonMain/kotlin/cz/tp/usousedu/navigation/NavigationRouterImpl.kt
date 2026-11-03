@@ -19,6 +19,17 @@ class NavigationRouterImpl(
     override fun toLandingScreen() {
         navController.navigate(ScreenDestination.Landing) {
             popUpTo(ScreenDestination.Login) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
+    override fun toMainDestination(destination: ScreenDestination) {
+        navController.navigate(destination) {
+            popUpTo(ScreenDestination.Landing) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
         }
     }
 

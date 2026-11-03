@@ -11,4 +11,16 @@ sealed interface ScreenDestination {
 
     @Serializable
     data object Landing : ScreenDestination
+
+    @Serializable
+    data object Menu : ScreenDestination
+
+    @Serializable
+    data object News : ScreenDestination
+
+    @Serializable
+    data object Cafes : ScreenDestination
+
+    @Serializable
+    data object Profile : ScreenDestination
 }
