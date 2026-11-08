@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import cz.tp.usousedu.ui.screens.landing.LandingScreen
 import cz.tp.usousedu.ui.screens.login.LoginScreen
 import cz.tp.usousedu.ui.screens.menu.MenuScreen
+import cz.tp.usousedu.ui.screens.news.NewsScreen
 import cz.tp.usousedu.ui.screens.placeholder.MainPlaceholderScreen
 import cz.tp.usousedu.ui.screens.placeholder.ProfilePlaceholderScreen
 import cz.tp.usousedu.ui.screens.register.RegisterScreen
@@ -42,11 +43,7 @@ fun NavGraph(
         }
 
         composable<ScreenDestination.News> {
-            MainPlaceholderScreen(
-                destination = ScreenDestination.News,
-                title = "Aktuality",
-                navigation = navigation,
-            )
+            NewsScreen(navigation)
         }
 
         composable<ScreenDestination.Cafes> {
