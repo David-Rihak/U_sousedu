@@ -16,27 +16,33 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cz.tp.usousedu.data.cafes.toCafe
+import cz.tp.usousedu.data.model.CafeEvent
+import cz.tp.usousedu.data.news.NewsCatalog
+import cz.tp.usousedu.data.seed.SeedData
 import cz.tp.usousedu.navigation.INavigationRouter
 import cz.tp.usousedu.navigation.ScreenDestination
 import cz.tp.usousedu.ui.components.BaseScreen
+import cz.tp.usousedu.ui.components.ErrorContent
+import cz.tp.usousedu.ui.components.LoadingContent
 import cz.tp.usousedu.ui.components.MainBottomNavigation
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.ExperimentalTime
 
 @Composable
 fun NewsScreen(navigation: INavigationRouter) {
-    var filterKey by rememberSaveable { mutableStateOf(NewsFilter.ALL.name) }
-    val selectedFilter = NewsFilter.entries.firstOrNull { it.name == filterKey } ?: NewsFilter.ALL
+    val viewModel = koinViewModel<NewsViewModel>()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -66,8 +72,8 @@ fun NewsScreen(navigation: INavigationRouter) {
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
             ) {
                 NewsScreenContent(
-                    selectedFilter = selectedFilter,
-                    onFilterSelected = { filterKey = it.name },
+                    state = state,
+                    actions = viewModel,
                     onReminderClick = {
                         scope.launch {
                             snackbarHostState.showSnackbar(
@@ -90,12 +96,10 @@ fun NewsScreen(navigation: INavigationRouter) {
 /** Can be previewed and tested independently of navigation, Koin and Firebase. */
 @Composable
 fun NewsScreenContent(
-    selectedFilter: NewsFilter,
-    onFilterSelected: (NewsFilter) -> Unit,
+    state: NewsUIState,
+    actions: NewsActions,
     onReminderClick: (CafeEvent) -> Unit,
 ) {
-    val events = NewsCatalog.forFilter(selectedFilter)
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -113,35 +117,56 @@ fun NewsScreenContent(
                 color = NewsColors.text,
             )
         }
-        item {
-            NewsFilterRow(
-                selectedFilter = selectedFilter,
-                onFilterSelected = onFilterSelected,
-            )
-        }
-        if (events.isEmpty()) {
-            item {
-                Text(
-                    text = "V této kategorii zatím nejsou žádné aktuality.",
-                    color = NewsColors.mutedText,
-                    modifier = Modifier.padding(vertical = 18.dp),
-                )
+        when (state) {
+            NewsUIState.Loading -> item { LoadingContent() }
+
+            is NewsUIState.Error -> item {
+                ErrorContent(message = state.message, onRetry = actions::retry)
             }
-        } else {
-            items(events, key = { it.id }) { event ->
-                NewsEventCard(event = event, onReminderClick = onReminderClick)
+
+            is NewsUIState.Loaded -> {
+                item {
+                    NewsFilterRow(
+                        selectedFilter = state.filter,
+                        onFilterSelected = actions::selectFilter,
+                    )
+                }
+                if (state.events.isEmpty()) {
+                    item {
+                        Text(
+                            text = "V této kategorii zatím nejsou žádné nadcházející akce.",
+                            color = NewsColors.mutedText,
+                            modifier = Modifier.padding(vertical = 18.dp),
+                        )
+                    }
+                } else {
+                    items(state.events, key = { it.event.id }) { item ->
+                        NewsEventCard(item = item, onReminderClick = onReminderClick)
+                    }
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @Preview
 @Composable
 fun NewsScreenPreview() {
+    val events = NewsViewModel.upcomingItems(
+        events = NewsCatalog.events,
+        cafes = SeedData.cafes.map { (id, dto) -> dto.toCafe(id) },
+        filter = NewsFilter.ALL,
+        now = NewsCatalog.events.first().startsAt,
+        timeZone = NewsCatalog.PRAGUE,
+    )
     MaterialTheme {
         NewsScreenContent(
-            selectedFilter = NewsFilter.ALL,
-            onFilterSelected = {},
+            state = NewsUIState.Loaded(NewsFilter.ALL, events),
+            actions = object : NewsActions {
+                override fun selectFilter(filter: NewsFilter) {}
+                override fun retry() {}
+            },
             onReminderClick = {},
         )
     }

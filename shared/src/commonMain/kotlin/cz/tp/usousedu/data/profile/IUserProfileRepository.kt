@@ -7,4 +7,7 @@ import cz.tp.usousedu.data.auth.UserRole
 // it would live in a database (Firestore), not in Firebase Auth.
 interface IUserProfileRepository {
     suspend fun setRole(role: UserRole): Result<AuthUser>
+
+    /** Stores the café shown on the loyalty card. */
+    suspend fun setFavoriteCafe(cafeId: String): Result<AuthUser>
 }

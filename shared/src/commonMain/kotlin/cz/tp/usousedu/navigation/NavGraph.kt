@@ -6,12 +6,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import cz.tp.usousedu.ui.screens.cafes.CafesScreen
 import cz.tp.usousedu.ui.screens.landing.LandingScreen
 import cz.tp.usousedu.ui.screens.login.LoginScreen
 import cz.tp.usousedu.ui.screens.menu.MenuScreen
 import cz.tp.usousedu.ui.screens.news.NewsScreen
-import cz.tp.usousedu.ui.screens.placeholder.MainPlaceholderScreen
-import cz.tp.usousedu.ui.screens.placeholder.ProfilePlaceholderScreen
+import cz.tp.usousedu.ui.screens.profile.ProfileScreen
 import cz.tp.usousedu.ui.screens.register.RegisterScreen
 
 @Composable
@@ -47,15 +47,11 @@ fun NavGraph(
         }
 
         composable<ScreenDestination.Cafes> {
-            MainPlaceholderScreen(
-                destination = ScreenDestination.Cafes,
-                title = "Kavárny",
-                navigation = navigation,
-            )
+            CafesScreen(navigation)
         }
 
         composable<ScreenDestination.Profile> {
-            ProfilePlaceholderScreen(navigation)
+            ProfileScreen(navigation)
         }
     }
 }

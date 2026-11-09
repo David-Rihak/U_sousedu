@@ -32,6 +32,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cz.tp.usousedu.data.model.Cafe
+import cz.tp.usousedu.data.model.MenuCategory
+import cz.tp.usousedu.data.model.Product
 
 internal object MenuColors {
     val background = Color(0xFFFFF4E6)
@@ -47,29 +50,30 @@ internal object MenuColors {
 }
 
 @Composable
-internal fun BranchSelector(
-    selectedBranch: MenuBranch,
-    onBranchSelected: (MenuBranch) -> Unit,
+internal fun CafeSelector(
+    cafes: List<Cafe>,
+    selectedCafeId: String?,
+    onCafeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
-        MenuBranch.entries.forEach { branch ->
-            val isSelected = selectedBranch == branch
+        cafes.forEach { cafe ->
+            val isSelected = selectedCafeId == cafe.id
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(100.dp))
                     .background(if (isSelected) MenuColors.text else MenuColors.white)
-                    .clickable(role = Role.Tab) { onBranchSelected(branch) }
+                    .clickable(role = Role.Tab) { onCafeSelected(cafe.id) }
                     .semantics { selected = isSelected }
                     .defaultMinSize(minHeight = 44.dp)
                     .padding(horizontal = 13.dp, vertical = 10.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = branch.title,
+                    text = cafe.shortName,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = if (isSelected) MenuColors.white else MenuColors.text,
@@ -121,7 +125,7 @@ internal fun CategorySelector(
 }
 
 @Composable
-internal fun MenuProductCard(product: MenuProduct) {
+internal fun MenuProductCard(product: Product) {
     Surface(
         shape = RoundedCornerShape(19.dp),
         color = MenuColors.white,

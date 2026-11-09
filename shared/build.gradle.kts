@@ -25,7 +25,7 @@ kotlin {
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
        compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
+           jvmTarget = JvmTarget.JVM_17
        }
        androidResources {
            enable = true
@@ -67,6 +67,11 @@ kotlin {
             implementation(libs.androidx.datastore.preferences.core)
             implementation(libs.kotlincrypto.hash.sha2)
             implementation(libs.qrose)
+
+            // Firebase (GitLive KMP SDK)
+            implementation(libs.gitlive.firebase.auth)
+            implementation(libs.gitlive.firebase.firestore)
+            implementation(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

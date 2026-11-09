@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cz.tp.usousedu.data.model.CafeEvent
+import cz.tp.usousedu.data.model.NewsBannerStyle
 
 /** Mirrors the warm palette already present in MenuComponents.kt. */
 internal object NewsColors {
@@ -76,16 +78,17 @@ internal fun NewsFilterRow(
 
 @Composable
 internal fun NewsEventCard(
-    event: CafeEvent,
+    item: NewsEventItem,
     onReminderClick: (CafeEvent) -> Unit,
 ) {
+    val event = item.event
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(23.dp),
         color = NewsColors.white,
     ) {
         Column {
-            EventImagePlaceholder(event)
+            EventImagePlaceholder(item)
             Column(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -98,7 +101,9 @@ internal fun NewsEventCard(
                     color = NewsColors.text,
                 )
                 Text(
-                    text = "${event.schedule} · ${event.cafe}",
+                    text = listOf(item.dateTexts.schedule, item.cafeName)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · "),
                     fontSize = 12.sp,
                     color = NewsColors.mutedText,
                 )
@@ -131,7 +136,8 @@ internal fun NewsEventCard(
 }
 
 @Composable
-private fun EventImagePlaceholder(event: CafeEvent) {
+private fun EventImagePlaceholder(item: NewsEventItem) {
+    val event = item.event
     val isApricot = event.bannerStyle == NewsBannerStyle.APRICOT
     val bannerColor = if (isApricot) NewsColors.kidsBanner else NewsColors.friendsBanner
     val stripeColor = if (isApricot) NewsColors.kidsStripe else NewsColors.friendsStripe
@@ -173,7 +179,7 @@ private fun EventImagePlaceholder(event: CafeEvent) {
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
                 Text(
-                    text = event.day,
+                    text = item.dateTexts.day,
                     color = NewsColors.text,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -181,7 +187,7 @@ private fun EventImagePlaceholder(event: CafeEvent) {
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = event.month,
+                    text = item.dateTexts.month,
                     color = NewsColors.text,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,

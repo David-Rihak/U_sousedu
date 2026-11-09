@@ -69,6 +69,10 @@ class LocalAuthRepository(
             ?: Result.failure(AuthError.NotSignedIn)
     }
 
+    // The Room table has no column for it; the local mock is kept only as a fallback.
+    override suspend fun setFavoriteCafe(cafeId: String): Result<AuthUser> =
+        Result.failure(AuthError.NotSupported)
+
     /** Local-only: creates the mock account when the table is empty, without signing it in. */
     suspend fun ensureSeeded() {
         if (dao.count() == 0) {

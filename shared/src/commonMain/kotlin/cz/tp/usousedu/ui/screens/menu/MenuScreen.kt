@@ -13,25 +13,28 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cz.tp.usousedu.data.cafes.toCafe
+import cz.tp.usousedu.data.menu.MenuCatalog
+import cz.tp.usousedu.data.model.MenuCategory
+import cz.tp.usousedu.data.seed.SeedData
 import cz.tp.usousedu.navigation.INavigationRouter
 import cz.tp.usousedu.navigation.ScreenDestination
 import cz.tp.usousedu.ui.components.BaseScreen
+import cz.tp.usousedu.ui.components.ErrorContent
+import cz.tp.usousedu.ui.components.LoadingContent
 import cz.tp.usousedu.ui.components.MainBottomNavigation
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MenuScreen(navigation: INavigationRouter) {
-    var branchKey by rememberSaveable { mutableStateOf(MenuBranch.PARK.name) }
-    var categoryKey by rememberSaveable { mutableStateOf(MenuCategory.COFFEE.name) }
-    val branch = MenuBranch.entries.firstOrNull { it.name == branchKey } ?: MenuBranch.PARK
-    val category = MenuCategory.entries.firstOrNull { it.name == categoryKey } ?: MenuCategory.COFFEE
+    val viewModel = koinViewModel<MenuViewModel>()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     MaterialTheme(
         colorScheme = lightColorScheme(
@@ -57,10 +60,8 @@ fun MenuScreen(navigation: INavigationRouter) {
         ) { paddingValues ->
             MenuScreenContent(
                 paddingValues = paddingValues,
-                branch = branch,
-                category = category,
-                onBranchSelected = { branchKey = it.name },
-                onCategorySelected = { categoryKey = it.name },
+                state = state,
+                actions = viewModel,
             )
         }
     }
@@ -69,13 +70,9 @@ fun MenuScreen(navigation: INavigationRouter) {
 @Composable
 fun MenuScreenContent(
     paddingValues: PaddingValues,
-    branch: MenuBranch,
-    category: MenuCategory,
-    onBranchSelected: (MenuBranch) -> Unit,
-    onCategorySelected: (MenuCategory) -> Unit,
+    state: MenuUIState,
+    actions: MenuActions,
 ) {
-    val currentProducts = MenuCatalog.forSelection(branch, category)
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -93,27 +90,36 @@ fun MenuScreenContent(
                 modifier = Modifier.padding(bottom = 4.dp),
             )
         }
-        item {
-            BranchSelector(
-                selectedBranch = branch,
-                onBranchSelected = onBranchSelected,
-                modifier = Modifier.padding(bottom = 5.dp),
-            )
-        }
-        item {
-            CategorySelector(
-                selectedCategory = category,
-                onCategorySelected = onCategorySelected,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),
-            )
-        }
-        if (currentProducts.isEmpty()) {
-            item {
-                EmptyMenuMessage()
+        when (state) {
+            MenuUIState.Loading -> item { LoadingContent() }
+
+            is MenuUIState.Error -> item {
+                ErrorContent(message = state.message, onRetry = actions::retry)
             }
-        } else {
-            items(currentProducts, key = { it.id }) { product ->
-                MenuProductCard(product = product)
+
+            is MenuUIState.Loaded -> {
+                item {
+                    CafeSelector(
+                        cafes = state.cafes,
+                        selectedCafeId = state.selectedCafeId,
+                        onCafeSelected = actions::selectCafe,
+                        modifier = Modifier.padding(bottom = 5.dp),
+                    )
+                }
+                item {
+                    CategorySelector(
+                        selectedCategory = state.selectedCategory,
+                        onCategorySelected = actions::selectCategory,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),
+                    )
+                }
+                if (state.products.isEmpty()) {
+                    item { EmptyMenuMessage() }
+                } else {
+                    items(state.products, key = { it.id }) { product ->
+                        MenuProductCard(product = product)
+                    }
+                }
             }
         }
     }
@@ -122,13 +128,22 @@ fun MenuScreenContent(
 @Preview
 @Composable
 fun MenuScreenPreview() {
+    val cafes = SeedData.cafes.map { (id, dto) -> dto.toCafe(id) }.sortedBy { it.order }
+    val cafeId = cafes.first().id
     MaterialTheme {
         MenuScreenContent(
             paddingValues = PaddingValues(0.dp),
-            branch = MenuBranch.PARK,
-            category = MenuCategory.COFFEE,
-            onBranchSelected = {},
-            onCategorySelected = {},
+            state = MenuUIState.Loaded(
+                cafes = cafes,
+                selectedCafeId = cafeId,
+                selectedCategory = MenuCategory.COFFEE,
+                products = MenuCatalog.forSelection(cafeId, MenuCategory.COFFEE),
+            ),
+            actions = object : MenuActions {
+                override fun selectCafe(cafeId: String) {}
+                override fun selectCategory(category: MenuCategory) {}
+                override fun retry() {}
+            },
         )
     }
 }

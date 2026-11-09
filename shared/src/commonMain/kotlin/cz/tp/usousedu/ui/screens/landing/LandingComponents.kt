@@ -25,9 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import cz.tp.usousedu.data.model.Cafe
 
 @Composable
-fun LandingHeader(selectedCafe: CafeInfo) {
+fun LandingHeader(
+    selectedCafe: Cafe?,
+    onChangeCafe: () -> Unit,
+    canChangeCafe: Boolean = selectedCafe != null,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "U sousedů",
@@ -46,17 +51,19 @@ fun LandingHeader(selectedCafe: CafeInfo) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Vybraná kavárna", style = MaterialTheme.typography.labelMedium)
                     Text(
-                        text = selectedCafe.name,
+                        text = selectedCafe?.name ?: "Zatím žádná kavárna",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
-                    Text(
-                        text = selectedCafe.address,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    if (selectedCafe != null) {
+                        Text(
+                            text = selectedCafe.address,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
-                TextButton(onClick = {}, enabled = false) {
+                TextButton(onClick = onChangeCafe, enabled = canChangeCafe) {
                     Text("Změnit")
                 }
             }
