@@ -15,7 +15,17 @@ object FirestoreCollections {
     const val EVENTS = "events"
     const val REWARDS = "rewards"
     const val LOYALTY_CARDS = "loyaltyCards"
+
+    /** Subcollection loyaltyCards/{uid}/history. */
+    const val HISTORY = "history"
 }
+
+/** users/{uid} – only the fields the staff search needs. */
+@Serializable
+data class UserDto(
+    val email: String = "",
+    val role: String = "CUSTOMER",
+)
 
 /** cafes/{cafeId} */
 @Serializable
@@ -70,3 +80,21 @@ data class LoyaltyCardDto(
     val stampsGoal: Int = 10,
     val updatedAt: BaseTimestamp = Timestamp.ServerTimestamp,
 )
+
+/** loyaltyCards/{uid}/history/{autoId} – one staff change of the card (append-only audit log). */
+@Serializable
+data class LoyaltyHistoryDto(
+    /** "STAMP_ADDED" or "STAMP_REMOVED" (later also "REWARD_REDEEMED"). */
+    val type: String = "",
+    /** Change of stamps, e.g. +1 / -1. */
+    val delta: Int = 0,
+    val stampsAfter: Int = 0,
+    /** uid of the staff member; the rules require it to be the signed-in user. */
+    val staffId: String = "",
+    val createdAt: BaseTimestamp = Timestamp.ServerTimestamp,
+) {
+    companion object {
+        const val TYPE_STAMP_ADDED = "STAMP_ADDED"
+        const val TYPE_STAMP_REMOVED = "STAMP_REMOVED"
+    }
+}

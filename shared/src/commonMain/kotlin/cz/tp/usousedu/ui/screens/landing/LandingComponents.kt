@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cz.tp.usousedu.data.model.Cafe
 
 @Composable
@@ -36,13 +37,15 @@ fun LandingHeader(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "U sousedů",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.ExtraBold,
         )
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
+            // Explicit: white = secondaryContainer in the warm scheme, which would pick the accent.
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
             Row(
                 modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
@@ -84,6 +87,7 @@ fun LoyaltyCard(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ),
     ) {
         Column(
@@ -96,7 +100,7 @@ fun LoyaltyCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
-                    Text("Věrnostní karta", style = MaterialTheme.typography.titleLarge)
+                    Text("Věrnostní karta", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
                         text = "Sbírejte razítka za každou návštěvu",
                         style = MaterialTheme.typography.bodySmall,
@@ -187,6 +191,7 @@ fun RewardCard(reward: RewardItem) {
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ),
     ) {
         Column(
@@ -206,15 +211,13 @@ fun RewardCard(reward: RewardItem) {
                 )
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = if (reward.isAvailable) {
-                        MaterialTheme.colorScheme.secondaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    },
+                    // Green badge = available, as the "Oblíbené" badges in Menu.
+                    color = if (reward.isAvailable) LandingColors.badgeBackground else LandingColors.track,
                 ) {
                     Text(
                         text = "${reward.requiredStamps} razítek",
                         style = MaterialTheme.typography.labelMedium,
+                        color = if (reward.isAvailable) LandingColors.badgeText else LandingColors.mutedText,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                     )
                 }

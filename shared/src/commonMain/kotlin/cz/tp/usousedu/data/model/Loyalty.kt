@@ -23,3 +23,9 @@ data class Reward(
 ) {
     fun isAvailableFor(card: LoyaltyCard): Boolean = card.stamps >= requiredStamps
 }
+
+/** Card after adding [delta] stamps; null when it would leave 0..stampsGoal (rules reject it too). */
+fun LoyaltyCard.withStampChange(delta: Int): LoyaltyCard? {
+    val newStamps = stamps + delta
+    return if (newStamps in 0..stampsGoal) copy(stamps = newStamps) else null
+}

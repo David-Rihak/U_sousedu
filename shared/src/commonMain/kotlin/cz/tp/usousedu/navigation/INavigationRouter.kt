@@ -5,5 +5,6 @@ interface INavigationRouter {
     fun toRegisterScreen()
     fun toLandingScreen()
     fun toMainDestination(destination: ScreenDestination)
+    fun toStaffScreen()
     fun navigateBack()
 }

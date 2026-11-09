@@ -4,6 +4,9 @@ import cz.tp.usousedu.data.auth.FirebaseAuthRepository
 import cz.tp.usousedu.data.auth.IAuthRepository
 import cz.tp.usousedu.data.cafes.FirestoreCafeRepository
 import cz.tp.usousedu.data.cafes.ICafeRepository
+import cz.tp.usousedu.data.customers.FirestoreCustomerRepository
+import cz.tp.usousedu.data.customers.ICustomerRepository
+import cz.tp.usousedu.ui.screens.staff.StaffViewModel
 import cz.tp.usousedu.data.menu.FirestoreMenuRepository
 import cz.tp.usousedu.data.menu.IMenuRepository
 import cz.tp.usousedu.ui.screens.cafes.CafesViewModel
@@ -50,6 +53,7 @@ val dataModule = module {
     single<INewsRepository> { FirestoreNewsRepository() }
     single<ILoyaltyRepository> { FirestoreLoyaltyRepository() }
     single<IRewardsRepository> { FirestoreRewardsRepository() }
+    single<ICustomerRepository> { FirestoreCustomerRepository() }
 }
 
 val viewModelModule = module {
@@ -61,6 +65,7 @@ val viewModelModule = module {
     viewModel { MenuViewModel(get(), get(), get()) }
     viewModel { NewsViewModel(get(), get()) }
     viewModel { ProfileViewModel(get(), get(), get()) }
+    viewModel { StaffViewModel(get(), get(), get()) }
 }
 
 fun initKoin(config: AppConfig = AppConfig(), appDeclaration: KoinAppDeclaration = {}) =

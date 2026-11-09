@@ -13,6 +13,7 @@ import cz.tp.usousedu.ui.screens.menu.MenuScreen
 import cz.tp.usousedu.ui.screens.news.NewsScreen
 import cz.tp.usousedu.ui.screens.profile.ProfileScreen
 import cz.tp.usousedu.ui.screens.register.RegisterScreen
+import cz.tp.usousedu.ui.screens.staff.StaffScreen
 
 @Composable
 fun NavGraph(
@@ -52,6 +53,10 @@ fun NavGraph(
 
         composable<ScreenDestination.Profile> {
             ProfileScreen(navigation)
+        }
+
+        composable<ScreenDestination.Staff> {
+            StaffScreen(navigation)
         }
     }
 }

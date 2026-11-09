@@ -6,7 +6,9 @@ import cz.tp.usousedu.data.cafes.toCafe
 import cz.tp.usousedu.data.seed.SeedData
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ProfileViewModelTest {
     private val cafes = SeedData.cafes.map { (id, dto) -> dto.toCafe(id) }.sortedBy { it.order }
@@ -34,6 +36,13 @@ class ProfileViewModelTest {
     fun pickerGetsAllCafesInOrder() {
         val loaded = ProfileViewModel.buildState(user, cafes)
         assertEquals(listOf(SeedData.NAMESTI, SeedData.U_PARKU, SeedData.NADRAZI), loaded.cafes.map { it.id })
+    }
+
+    @Test
+    fun staffModeOnlyForStaff() {
+        assertFalse(ProfileViewModel.buildState(user, cafes).isStaff)
+        assertTrue(ProfileViewModel.buildState(user.copy(role = UserRole.ADMIN), cafes).isStaff)
+        assertTrue(ProfileViewModel.buildState(user.copy(role = UserRole.OWNER), cafes).isStaff)
     }
 
     @Test

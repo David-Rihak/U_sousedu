@@ -23,4 +23,8 @@ sealed interface ScreenDestination {
 
     @Serializable
     data object Profile : ScreenDestination
+
+    /** Staff only (ADMIN / OWNER), opened from Profil. */
+    @Serializable
+    data object Staff : ScreenDestination
 }

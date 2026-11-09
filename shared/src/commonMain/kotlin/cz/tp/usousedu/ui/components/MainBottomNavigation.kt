@@ -2,7 +2,9 @@ package cz.tp.usousedu.ui.components
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import cz.tp.usousedu.navigation.ScreenDestination
@@ -51,6 +53,12 @@ fun MainBottomNavigation(
                 },
                 label = { Text(item.label) },
                 alwaysShowLabel = true,
+                // The label follows the icon; by default it takes `secondary`, which the screens
+                // do not set (grey-violet label under an orange icon).
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
             )
         }
     }

@@ -33,6 +33,12 @@ class NavigationRouterImpl(
         }
     }
 
+    override fun toStaffScreen() {
+        navController.navigate(ScreenDestination.Staff) {
+            launchSingleTop = true
+        }
+    }
+
     override fun navigateBack() {
         navController.popBackStack()
     }

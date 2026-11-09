@@ -40,6 +40,8 @@ fun QrCodeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
+        // Explicit: a white sheet = secondaryContainer in the warm scheme, which would pick the accent.
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),

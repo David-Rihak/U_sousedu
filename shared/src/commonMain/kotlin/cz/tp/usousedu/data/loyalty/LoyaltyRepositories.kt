@@ -2,9 +2,12 @@ package cz.tp.usousedu.data.loyalty
 
 import cz.tp.usousedu.data.firestore.FirestoreCollections
 import cz.tp.usousedu.data.firestore.LoyaltyCardDto
+import cz.tp.usousedu.data.firestore.LoyaltyHistoryDto
 import cz.tp.usousedu.data.firestore.RewardDto
 import cz.tp.usousedu.data.model.LoyaltyCard
 import cz.tp.usousedu.data.model.Reward
+import cz.tp.usousedu.data.model.withStampChange
+import kotlinx.coroutines.CancellationException
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.FirebaseFirestore
@@ -16,6 +19,13 @@ import kotlinx.coroutines.flow.map
 interface ILoyaltyRepository {
     /** The user's card; [LoyaltyCard.EMPTY] while the user has no card document yet. */
     fun observeCard(userId: String): Flow<LoyaltyCard>
+
+    /**
+     * Staff only: adds [delta] stamps (negative = removes) to the card of [customerId] and logs it
+     * to its history, both in one transaction. Fails with [StampLimitException] when the result
+     * would leave 0..stampsGoal.
+     */
+    suspend fun changeStamps(customerId: String, delta: Int, staffId: String): Result<LoyaltyCard>
 }
 
 interface IRewardsRepository {
@@ -30,6 +40,33 @@ class FirestoreLoyaltyRepository(
     override fun observeCard(userId: String): Flow<LoyaltyCard> =
         firestore.collection(FirestoreCollections.LOYALTY_CARDS).document(userId).snapshots
             .map { it.toCard() }
+
+    override suspend fun changeStamps(customerId: String, delta: Int, staffId: String): Result<LoyaltyCard> = try {
+        val cardRef = firestore.collection(FirestoreCollections.LOYALTY_CARDS).document(customerId)
+        // Auto-ID created up front; the transaction may run several times but writes the same entry.
+        val historyRef = cardRef.collection(FirestoreCollections.HISTORY).document
+        val updated = firestore.runTransaction {
+            // A missing card is created (EMPTY = 0 stamps, default goal).
+            val card = get(cardRef).toCard().withStampChange(delta) ?: throw StampLimitException()
+            set(cardRef, LoyaltyCardDto.serializer(), LoyaltyCardDto(stamps = card.stamps, stampsGoal = card.stampsGoal))
+            set(
+                historyRef,
+                LoyaltyHistoryDto.serializer(),
+                LoyaltyHistoryDto(
+                    type = if (delta >= 0) LoyaltyHistoryDto.TYPE_STAMP_ADDED else LoyaltyHistoryDto.TYPE_STAMP_REMOVED,
+                    delta = delta,
+                    stampsAfter = card.stamps,
+                    staffId = staffId,
+                ),
+            )
+            card
+        }
+        Result.success(updated)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 
     private fun DocumentSnapshot.toCard(): LoyaltyCard {
         if (!exists) return LoyaltyCard.EMPTY
@@ -62,11 +99,17 @@ class FirestoreRewardsRepository(
     }
 }
 
+/** The card would end up below 0 or above stampsGoal. */
+class StampLimitException : IllegalStateException("Stamps out of range")
+
 /** Mock card, for previews and tests. */
 class FakeLoyaltyRepository(
     private val card: LoyaltyCard = LoyaltyCatalog.card,
 ) : ILoyaltyRepository {
     override fun observeCard(userId: String): Flow<LoyaltyCard> = flowOf(card)
+
+    override suspend fun changeStamps(customerId: String, delta: Int, staffId: String): Result<LoyaltyCard> =
+        card.withStampChange(delta)?.let { Result.success(it) } ?: Result.failure(StampLimitException())
 }
 
 /** Mock rewards, for previews and tests. */

@@ -10,3 +10,6 @@ enum class UserRole(val code: Int) {
         fun fromCode(code: Int): UserRole = entries.firstOrNull { it.code == code } ?: CUSTOMER
     }
 }
+
+/** Staff (ADMIN or OWNER) may change stamps; the same rule is in firestore.rules (isStaff). */
+val UserRole.isStaff: Boolean get() = this == UserRole.ADMIN || this == UserRole.OWNER

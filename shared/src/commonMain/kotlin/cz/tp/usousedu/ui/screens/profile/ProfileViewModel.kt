@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import cz.tp.usousedu.data.auth.AuthUser
 import cz.tp.usousedu.data.auth.IAuthRepository
 import cz.tp.usousedu.data.auth.UserRole
+import cz.tp.usousedu.data.auth.isStaff
 import cz.tp.usousedu.data.cafes.ICafeRepository
 import cz.tp.usousedu.data.cafes.resolveCafeId
 import cz.tp.usousedu.data.model.Cafe
@@ -33,6 +34,8 @@ sealed interface ProfileUIState {
         val cafe: Cafe?,
         /** All cafés, for the "Změnit" picker. */
         val cafes: List<Cafe> = emptyList(),
+        /** ADMIN / OWNER: shows the "Režim obsluhy" button. */
+        val isStaff: Boolean = false,
     ) : ProfileUIState
 }
 
@@ -97,6 +100,7 @@ class ProfileViewModel(
             return ProfileUIState.Loaded(
                 email = user.email,
                 roleLabel = staffRoleLabel(user.role),
+                isStaff = user.role.isStaff,
                 cafe = cafes.firstOrNull { it.id == cafeId },
                 cafes = cafes,
             )

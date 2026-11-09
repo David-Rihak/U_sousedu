@@ -105,6 +105,7 @@ fun ProfileScreen(navigation: INavigationRouter) {
                     actions = viewModel,
                     onLoggedOut = navigation::toLoginScreen,
                     onChangeCafe = { showCafePicker = true },
+                    onOpenStaffMode = navigation::toStaffScreen,
                     debugSection = { DebugSeedSection(modifier = Modifier.padding(top = 20.dp)) },
                 )
                 SnackbarHost(
@@ -137,6 +138,7 @@ fun ProfileScreenContent(
     actions: ProfileActions,
     onLoggedOut: () -> Unit,
     onChangeCafe: () -> Unit,
+    onOpenStaffMode: () -> Unit = {},
     debugSection: @Composable () -> Unit = {},
 ) {
     LazyColumn(
@@ -169,6 +171,9 @@ fun ProfileScreenContent(
                         onChangeCafe = onChangeCafe,
                         canChangeCafe = state.cafes.size > 1,
                     )
+                }
+                if (state.isStaff) {
+                    item { StaffModeButton(onClick = onOpenStaffMode) }
                 }
                 item { LogoutButton(onClick = { actions.logout(onLoggedOut) }) }
                 item { debugSection() }
@@ -268,6 +273,28 @@ private fun RoleBadge(label: String) {
     }
 }
 
+/** Staff only: opens the screen for adding / removing customers' stamps. */
+@Composable
+private fun StaffModeButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(100.dp))
+            .background(ProfileColors.accent)
+            .clickable(role = Role.Button, onClick = onClick)
+            .defaultMinSize(minHeight = 48.dp)
+            .padding(horizontal = 16.dp, vertical = 13.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "Režim obsluhy",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = ProfileColors.white,
+        )
+    }
+}
+
 @Composable
 private fun LogoutButton(onClick: () -> Unit) {
     Box(
@@ -296,7 +323,7 @@ fun ProfileScreenPreview() {
     MaterialTheme {
         ProfileScreenContent(
             paddingValues = PaddingValues(0.dp),
-            state = ProfileUIState.Loaded(email = "test@test.com", roleLabel = "Administrátor", cafe = cafe),
+            state = ProfileUIState.Loaded(email = "test@test.com", roleLabel = "Administrátor", cafe = cafe, isStaff = true),
             actions = object : ProfileActions {
                 override fun logout(onLoggedOut: () -> Unit) {}
                 override fun retry() {}
