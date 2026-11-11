@@ -18,11 +18,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 sealed interface MenuUIState {
     data object Loading : MenuUIState
@@ -52,6 +54,18 @@ class MenuViewModel(
     /** Café picked in Menu; null = the user's favorite. Browsing does not change the favorite. */
     private val pickedCafeId = MutableStateFlow<String?>(null)
     private val selectedCategory = MutableStateFlow(MenuCategory.COFFEE)
+
+    init {
+        // A new favorite (changed on Karta/Profil) wins over a café picked here earlier.
+        // The ViewModel outlives tab switches, so without this the old pick would stick.
+        viewModelScope.launch {
+            authRepository.currentUser
+                .map { it?.favoriteCafeId }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { pickedCafeId.value = null }
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<MenuUIState> = retryTrigger

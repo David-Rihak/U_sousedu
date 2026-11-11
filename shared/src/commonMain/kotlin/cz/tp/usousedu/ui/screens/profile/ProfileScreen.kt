@@ -176,7 +176,10 @@ fun ProfileScreenContent(
                     item { StaffModeButton(onClick = onOpenStaffMode) }
                 }
                 item { LogoutButton(onClick = { actions.logout(onLoggedOut) }) }
-                item { debugSection() }
+                // Seed writes need staff rights (firestore.rules), so customers never see it.
+                if (state.isStaff) {
+                    item { debugSection() }
+                }
             }
         }
     }
